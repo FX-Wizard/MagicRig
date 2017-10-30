@@ -338,8 +338,8 @@ def buildSkeleton():
     ikCurve = (ikCurve.split("|"))[3]
     cmds.rename(ikCurve, "ikSpineCurve")
     # Legs
-    cmds.ikHandle(name = "ikLegL", startJoint = "HipL", endEffector = "AnkleL", solver = "ikSCsolver")
-    cmds.ikHandle(name = "ikLegR", startJoint = "HipR", endEffector = "AnkleR", solver = "ikSCsolver")
+    cmds.ikHandle(name = "ikLegL", startJoint = "HipL", endEffector = "AnkleL", solver = "ikRPsolver")
+    cmds.ikHandle(name = "ikLegR", startJoint = "HipR", endEffector = "AnkleR", solver = "ikRPsolver")
     cmds.ikHandle(name = "ikFootL", startJoint = "AnkleL", endEffector = "FootL", solver = "ikSCsolver")
     cmds.ikHandle(name = "ikFootR", startJoint = "AnkleR", endEffector = "FootR", solver = "ikSCsolver")
     cmds.ikHandle(name = "ikToeL", startJoint = "FootL", endEffector = "ToeL", solver = "ikSCsolver")
@@ -347,14 +347,14 @@ def buildSkeleton():
 
     # Arms
     if cmds.checkBox("rollJointUi", query = True, value = True):
-        cmds.ikHandle(name = "ikArmL", startJoint = "ShoulderL", endEffector = "ForearmRollL", solver = "ikSCsolver")
+        cmds.ikHandle(name = "ikArmL", startJoint = "ShoulderL", endEffector = "ForearmRollL", solver = "ikRPsolver")
         effector = cmds.ikHandle("ikArmL", query = True, endEffector = True)
         cmds.rename(effector, "effectorIkArmL")
         pivot = cmds.joint("WristL", query = True, absolute = True, position = True)
         cmds.move(pivot[0], pivot[1], pivot[2], "effectorIkArmL.scalePivot", "effectorIkArmL.rotatePivot")
         cmds.move(pivot[0], pivot[1], pivot[2], "ikArmL")
 
-        cmds.ikHandle(name = "ikArmR", startJoint = "ShoulderR", endEffector = "ForearmRollR", solver = "ikSCsolver")
+        cmds.ikHandle(name = "ikArmR", startJoint = "ShoulderR", endEffector = "ForearmRollR", solver = "ikRPsolver")
         cmds.ikHandle("ikArmR", query = True, endEffector = True)
         cmds.rename(effector, "effectorIkArmR")
         pivot = cmds.joint("WristR", query = True, absolute = True, position = True)
@@ -362,8 +362,8 @@ def buildSkeleton():
         cmds.move(pivot[0], pivot[1], pivot[2], "ikArmR")
 
     else:
-        cmds.ikHandle(name = "ikArmL", startJoint = "ShoulderL", endEffector = "WristL", solver = "ikSCsolver")
-        cmds.ikHandle(name = "ikArmR", startJoint = "ShoulderR", endEffector = "WristR", solver = "ikSCsolver")
+        cmds.ikHandle(name = "ikArmL", startJoint = "ShoulderL", endEffector = "WristL", solver = "ikRPsolver")
+        cmds.ikHandle(name = "ikArmR", startJoint = "ShoulderR", endEffector = "WristR", solver = "ikRPsolver")
 
     # Control Curves
     # Spine and hips
@@ -537,20 +537,16 @@ def buildSkeleton():
         cmds.ikHandle(name = "ikFinger" + str(i) + "L", startJoint = "IKJFingerBase" + str(i) + "L", 
                 endEffector = "IKJFingerTip" + str(i) + "L", solver = "ikSCsolver")
         cmds.parent("ikFinger" + str(i) + "L", "FingerTipCtrl" + str(i) + "L")
-
         cmds.ikHandle(name = "ikFinger" + str(i) + "R", startJoint = "IKJFingerBase" + str(i) + "R", 
                 endEffector = "IKJFingerTip" + str(i) + "R", solver = "ikSCsolver")
         cmds.parent("ikFinger" + str(i) + "R", "FingerTipCtrl" + str(i) + "R")
-
     cmds.ikHandle(name = "ikThumbL", startJoint = "IKJThumbBaseL", 
             endEffector = "IKJThumbTipL", solver = "ikSCsolver")
     cmds.parent("ikThumbL", "ThumbTipCtrlL")
-
     cmds.ikHandle(name = "ikThumbR", startJoint = "IKJThumbBaseR", 
             endEffector = "IKJThumbTipR", solver = "ikSCsolver")
     cmds.parent("ikThumbR", "ThumbTipCtrlR")
     
-
     # IK/FK switches
     # whole body
     # TODO: make full body IK work
