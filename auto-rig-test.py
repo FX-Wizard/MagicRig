@@ -161,7 +161,7 @@ def mirrorProxy(orient):
     for proxy in proxyList:
         if proxy[-1] == orient:
             pos = cmds.getAttr("%s.translate" % (proxy.rstrip(orient) + source))
-            cmds.move((pos[0][0] * -1), pos[0][1], pos[0][2], proxy)
+            cmds.setAttr("%s.translate" % proxy, (pos[0][0] * -1), pos[0][1], pos[0][2], type="float3")
     cmds.select(clear = True)
 
 
@@ -451,7 +451,7 @@ def buildSkeleton():
     #lockHide("wristCtrlL", translate = False)
     cmds.pointConstraint("wristCtrlL", "ikArmL", maintainOffset = True)
     cmds.orientConstraint("wristCtrlL", "WristL", maintainOffset = True)
-    cmds.orientConstraint("WristL", "wristCtrlL", maintainOffset = True)
+    #cmds.orientConstraint("WristL", "wristCtrlL", maintainOffset = True)
 
     # Right Arm
     # elbow
@@ -464,8 +464,8 @@ def buildSkeleton():
     makeControl("wristCtrlR", ctrlSize = 2, snapJoint = "WristR", orientJoint ="ElbowR", ctrlNormal = (0, 1, 0))
     #lockHide("wristCtrlR", translate = False)
     cmds.pointConstraint("wristCtrlR", "ikArmR", maintainOffset = True)
-    cmds.orientConstraint("wristCtrlL", "WristR", maintainOffset = True)
-    cmds.orientConstraint("WristR", "wristCtrlR", maintainOffset = True)
+    cmds.orientConstraint("wristCtrlR", "WristR", maintainOffset = True)
+    #cmds.orientConstraint("WristR", "wristCtrlR", maintainOffset = True)
 
     # Finger FK controls
     numFingers = cmds.intSliderGrp("fingersNumUi", query = True, value = True)
@@ -486,9 +486,9 @@ def buildSkeleton():
         #makeControl("FingerTipCtrl" + str(i) + "L", ctrlSize = 0.5, snapJoint = "FingerTip" + str(i) + "L", ctrlNormal = (1, 0, 0))
 
         # right
-        makeControl("FingerBaseCtrl" + str(i) + "R", ctrlSize = 0.5, snapJoint = "FingerBase" + str(i) + "R", 
+        makeControl("FingerBaseCtrl" + str(i) + "R", ctrlSize = 0.5, snapJoint = "FingerBase" + str(i) + "R",
                     orientJoint = "FingerMiddle" + str(i) + "R", ctrlNormal = (0, 1, 0), constrain = "elbowCtrlR")
-        cmds.orientConstraint("FingerBase" + str(i) + "R", "FingerBase" + str(i) + "R", maintainOffset = True)
+        cmds.orientConstraint("FingerBaseCtrl" + str(i) + "R", "FingerBase" + str(i) + "R", maintainOffset = True)
 
         makeControl("FingerMiddleCtrl" + str(i) + "R", ctrlSize = 0.5, snapJoint = "FingerMiddle" + str(i) + "R", 
                     orientJoint = "FingerBase" + str(i) + "R", ctrlNormal = (0, 1, 0), constrain = "FingerBaseCtrl" + str(i) + "R")
