@@ -180,6 +180,26 @@ def buildSkeleton():
         jointList.append(newName)
         cmds.makeIdentity(newName, apply = True, translate = True, rotate = True, scale = True, jointOrient = True)
 
+    # Create FK/IK joint hierarchy for arms and legs
+    fkikJoints = ["ShoulderL", "ElbowL", "WristL", "HipL", "KneeL", "AnkleL",
+                "ShoulderR", "ElbowR", "WristR", "HipR", "KneeR", "AnkleR"]
+    for joint in fkikJoints:
+        cmds.duplicate(joint, name = "FKJ_" + joint)
+        cmds.duplicate(joint, name = "IKJ_" + joint)
+
+    sides = ["L", "R"]
+    for side in sides:
+        # FK IK Arms
+        cmds.parent("FKJ_Elbow" + side, "FKJ_Shoulder" + side)
+        cmds.parent("IKJ_Elbow" + side, "IKJ_Shoulder" + side)
+        cmds.parent("FKJ_Wrist" + side, "FKJ_Elbow" + side)
+        cmds.parent("IKJ_Wrist" + side, "IKJ_Elbow" + side)
+        # FK IK Legs
+        cmds.parent("FKJ_Knee" + side, "FKJ_Hip" + side)
+        cmds.parent("IKJ_Knee" + side, "IKJ_Hip" + side)
+        cmds.parent("FKJ_Ankle" + side, "FKJ_Knee" + side)
+        cmds.parent("IKJ_Ankle" + side, "IKJ_Knee" + side)
+
     # Parent joints
     # Dynamicly created joints
     spineList = ["Root"]
@@ -276,96 +296,24 @@ def buildSkeleton():
     cmds.joint("ClavicleR", edit = True,  orientJoint = "xyz", secondaryAxisOrient = "yup", children = True)
     cmds.joint("ClavicleL", edit = True,  orientJoint = "xyz", secondaryAxisOrient = "ydown", children = True)
 
-    ### Controlers ###
+    ##########################################################################
+    # Controlers
+    ##########################################################################
     makeControl("superMover", ctrlSize = 8, ctrlNormal = (0, 1, 0))
-    # FK
-    # head
+
+    ## head
     makeControl("headCtrl", ctrlSize = 2, snapJoint = "HeadTip", ctrlNormal = (0, 1, 0))
     pos = cmds.joint("Neck", query = True, absolute = True, position = True)
     cmds.move(pos[0], pos[1], pos[2], "headCtrl.scalePivot", "headCtrl.rotatePivot")
     cmds.parentConstraint("headCtrl", "Neck", maintainOffset = True)
     lockHide("headCtrl", rotate = False)
-    # left hip
-    makeControl("hipCtrlL", ctrlSize = 1.5, snapJoint = "HipL", ctrlNormal = (0, 1, 0))
-    cmds.orientConstraint("hipCtrlL", "HipL", maintainOffset = True)
-    lockHide("hipCtrlL", rotate = False)
-    # left knee
-    makeControl("kneeCtrlL", ctrlSize = 1.5, snapJoint = "KneeL", ctrlNormal = (0, 1, 0))
-    cmds.orientConstraint("kneeCtrlL", "KneeL", maintainOffset = True)
-    cmds.parent("kneeCtrlL", "hipCtrlL")
-    lockHide("kneeCtrlL", rotate = False)
-    # Left ankle
-    makeControl("ankleCtrlL", ctrlSize = 2, snapJoint = "AnkleL", ctrlNormal = (0, 1, 0))
-    cmds.orientConstraint("ankleCtrlL", "AnkleL", maintainOffset = True)
-    cmds.parent("ankleCtrlL", "kneeCtrlL")
-    lockHide("ankleCtrlL", rotate = False)
 
-    # right hip
-    makeControl("hipCtrlR", ctrlSize = 1.5, snapJoint = "HipR", ctrlNormal = (0, 1, 0))
-    cmds.orientConstraint("hipCtrlR", "HipR", maintainOffset = True)
-    lockHide("hipCtrlR", rotate = False)
-    # right knee
-    makeControl("kneeCtrlR", ctrlSize = 1.5, snapJoint = "KneeR", ctrlNormal = (0, 1, 0))
-    cmds.orientConstraint("kneeCtrlR", "KneeR", maintainOffset = True)
-    cmds.parent("kneeCtrlR", "hipCtrlR")
-    lockHide("kneeCtrlR", rotate = False)
-    # right ankle
-    makeControl("ankleCtrlR", ctrlSize = 2, snapJoint = "AnkleR", ctrlNormal = (0, 1, 0))
-    cmds.orientConstraint("ankleCtrlR", "AnkleR", maintainOffset = True)
-    cmds.parent("ankleCtrlR", "kneeCtrlR")
-    lockHide("ankleCtrlR", rotate = False)
-    # Arms
-    # left shoulder
-    makeControl("shoulderCtrlL", ctrlSize = 2, snapJoint = "ShoulderL", orientJoint = "ElbowL", ctrlNormal = (0, 1, 0))
-    cmds.orientConstraint("shoulderCtrlL", "ShoulderL", maintainOffset = True)
-    lockHide("shoulderCtrlL", rotate = False)
-    #left elbow
-    makeControl("elbowCtrlL", ctrlSize = 1.5, snapJoint = "ElbowL", orientJoint = "WristL", ctrlNormal = (0, 1, 0), constrain = "shoulderCtrlL")
-    cmds.orientConstraint("elbowCtrlL", "ElbowL", maintainOffset = True)
-    lockHide("elbowCtrlL", rotate = False)
-    # right shoulder
-    makeControl("shoulderCtrlR", ctrlSize = 2, snapJoint = "ShoulderR", orientJoint = "ElbowR", ctrlNormal = (0, 1, 0))
-    cmds.orientConstraint("shoulderCtrlR", "ShoulderR", maintainOffset = True)
-    lockHide("shoulderCtrlR", rotate = False)
-    #right elbow
-    makeControl("elbowCtrlR", ctrlSize = 1.5, snapJoint = "ElbowR", orientJoint = "WristR", ctrlNormal = (0, 1, 0), constrain = "shoulderCtrlR")
-    cmds.orientConstraint("elbowCtrlR", "ElbowR", maintainOffset = True)
-    lockHide("elbowCtrlR", rotate = False)
-    # 
     # Spine
     cmds.ikHandle(name = "ikSpine", solver = "ikSplineSolver", createCurve = True, startJoint = "Spine0", endEffector = "Spine" + str(sJointNum))
     ikCurve = cmds.ikHandle("ikSpine", query = True, curve = True)
     ikCurve = (ikCurve.split("|"))[3]
     cmds.rename(ikCurve, "ikSpineCurve")
-    # Legs
-    cmds.ikHandle(name = "ikLegL", startJoint = "HipL", endEffector = "AnkleL", solver = "ikRPsolver")
-    cmds.ikHandle(name = "ikLegR", startJoint = "HipR", endEffector = "AnkleR", solver = "ikRPsolver")
-    cmds.ikHandle(name = "ikFootL", startJoint = "AnkleL", endEffector = "FootL", solver = "ikSCsolver")
-    cmds.ikHandle(name = "ikFootR", startJoint = "AnkleR", endEffector = "FootR", solver = "ikSCsolver")
-    cmds.ikHandle(name = "ikToeL", startJoint = "FootL", endEffector = "ToeL", solver = "ikSCsolver")
-    cmds.ikHandle(name = "ikToeR", startJoint = "FootR", endEffector = "ToeR", solver = "ikSCsolver")
 
-    # Arms
-    if cmds.checkBox("rollJointUi", query = True, value = True):
-        cmds.ikHandle(name = "ikArmL", startJoint = "ShoulderL", endEffector = "ForearmRollL", solver = "ikRPsolver")
-        effector = cmds.ikHandle("ikArmL", query = True, endEffector = True)
-        cmds.rename(effector, "effectorIkArmL")
-        pivot = cmds.joint("WristL", query = True, absolute = True, position = True)
-        cmds.move(pivot[0], pivot[1], pivot[2], "effectorIkArmL.scalePivot", "effectorIkArmL.rotatePivot")
-        cmds.move(pivot[0], pivot[1], pivot[2], "ikArmL")
-
-        cmds.ikHandle(name = "ikArmR", startJoint = "ShoulderR", endEffector = "ForearmRollR", solver = "ikRPsolver")
-        cmds.ikHandle("ikArmR", query = True, endEffector = True)
-        cmds.rename(effector, "effectorIkArmR")
-        pivot = cmds.joint("WristR", query = True, absolute = True, position = True)
-        cmds.move(pivot[0], pivot[1], pivot[2], "effectorIkArmR.scalePivot", "effectorIkArmR.rotatePivot")
-        cmds.move(pivot[0], pivot[1], pivot[2], "ikArmR")
-
-    else:
-        cmds.ikHandle(name = "ikArmL", startJoint = "ShoulderL", endEffector = "WristL", solver = "ikRPsolver")
-        cmds.ikHandle(name = "ikArmR", startJoint = "ShoulderR", endEffector = "WristR", solver = "ikRPsolver")
-
-    # Control Curves
     # Spine and hips
     sJointNum = (cmds.intSliderGrp("spineJointNumUi", query = True, value = True) - 1)
     makeControl("upperBackIKCtrl", ctrlSize = 4, snapJoint = "Spine" + str(sJointNum), ctrlNormal = (0, 1, 0))
@@ -385,14 +333,56 @@ def buildSkeleton():
     cmds.parentConstraint("lowerBackIKCtrl", "Root",  maintainOffset = True)
 
     cmds.parent("backCtrl", "superMover")
-    # fix bug with ik curve parent
-    cmds.parent("ikSpineCurve", world = True)
-    # Legs
-    # knee pole vector
+    cmds.parent("ikSpineCurve", world = True) # fix bug with ik curve parent
+
+    ## FK Legs
+    # left hip
+    makeControl("hipCtrlL", ctrlSize = 1.5, snapJoint = "HipL", ctrlNormal = (0, 1, 0))
+    cmds.orientConstraint("hipCtrlL", "FKJ_HipL", maintainOffset = True)
+    lockHide("hipCtrlL", rotate = False)
+    # left knee
+    makeControl("kneeCtrlL", ctrlSize = 1.5, snapJoint = "KneeL", ctrlNormal = (0, 1, 0))
+    cmds.orientConstraint("kneeCtrlL", "FKJ_KneeL", maintainOffset = True)
+    cmds.parent("kneeCtrlL", "hipCtrlL")
+    lockHide("kneeCtrlL", rotate = False)
+    # Left ankle
+    makeControl("ankleCtrlL", ctrlSize = 2, snapJoint = "AnkleL", ctrlNormal = (0, 1, 0))
+    cmds.orientConstraint("ankleCtrlL", "FKJ_AnkleL", maintainOffset = True)
+    cmds.parent("ankleCtrlL", "kneeCtrlL")
+    lockHide("ankleCtrlL", rotate = False)
+    # right hip
+    makeControl("hipCtrlR", ctrlSize = 1.5, snapJoint = "HipR", ctrlNormal = (0, 1, 0))
+    cmds.orientConstraint("hipCtrlR", "FKJ_HipR", maintainOffset = True)
+    lockHide("hipCtrlR", rotate = False)
+    # right knee
+    makeControl("kneeCtrlR", ctrlSize = 1.5, snapJoint = "KneeR", ctrlNormal = (0, 1, 0))
+    cmds.orientConstraint("kneeCtrlR", "FKJ_KneeR", maintainOffset = True)
+    cmds.parent("kneeCtrlR", "hipCtrlR")
+    lockHide("kneeCtrlR", rotate = False)
+    # right ankle
+    makeControl("ankleCtrlR", ctrlSize = 2, snapJoint = "AnkleR", ctrlNormal = (0, 1, 0))
+    cmds.orientConstraint("ankleCtrlR", "FKJ_AnkleR", maintainOffset = True)
+    cmds.parent("ankleCtrlR", "kneeCtrlR")
+    lockHide("ankleCtrlR", rotate = False)
+
+    # IK Legs
+    cmds.ikHandle(name = "ikLegL", startJoint = "IKJ_HipL", endEffector = "IKJ_AnkleL", solver = "ikRPsolver")
+    cmds.ikHandle(name = "ikLegR", startJoint = "IKJ_HipR", endEffector = "IKJ_AnkleR", solver = "ikRPsolver")
+    cmds.ikHandle(name = "ikFootL", startJoint = "AnkleL", endEffector = "FootL", solver = "ikSCsolver")
+    cmds.ikHandle(name = "ikFootR", startJoint = "AnkleR", endEffector = "FootR", solver = "ikSCsolver")
+    cmds.ikHandle(name = "ikToeL", startJoint = "FootL", endEffector = "ToeL", solver = "ikSCsolver")
+    cmds.ikHandle(name = "ikToeR", startJoint = "FootR", endEffector = "ToeR", solver = "ikSCsolver")
+    # Left knee pole vector
     makeControl("kneePVCtrlL", 0.5, "KneeL", None, ("z", 4))
     cmds.poleVectorConstraint("kneePVCtrlL", "ikLegL")
     #cmds.parent("kneePVCtrlL", "AnkleL")
     lockHide("kneePVCtrlL", translate = False)
+    # Right knee pole vector
+    makeControl("kneePVCtrlR", ctrlSize = 0.5, snapJoint = "KneeR", offset = ("z", 4))
+    cmds.poleVectorConstraint("kneePVCtrlR", "ikLegR")
+    #cmds.parent("kneePVCtrlR", "AnkleR")
+    lockHide("kneePVCtrlR", translate = False)
+
     # Left foot
     makeControl("footCtrlL", ctrlSize = 2, snapJoint = "FootL", ctrlNormal = (0, 1, 0), ctrlScale = (0.8, 1, 1.7))
     cmds.parent(["ikLegL", "ikFootL", "ikToeL"], "footCtrlL")
@@ -412,13 +402,7 @@ def buildSkeleton():
     cmds.group("toeTipPivotL", name = "heelTapPivotL")
     jpos = cmds.joint("FootLockR", query = True, absolute = True, position = True)
     cmds.move(jpos[0], jpos[1], jpos[2], "heelTapPivotL.scalePivot", "heelTapPivotL.rotatePivot")
-
-    # Right foot
-    # knee pole vector
-    makeControl("kneePVCtrlR", ctrlSize = 0.5, snapJoint = "KneeR", offset = ("z", 4))
-    cmds.poleVectorConstraint("kneePVCtrlR", "ikLegR")
-    #cmds.parent("kneePVCtrlR", "AnkleR")
-    lockHide("kneePVCtrlR", translate = False)
+    
     # right foot
     makeControl("footCtrlR", ctrlSize = 2, snapJoint = "FootR", ctrlNormal = (0, 1, 0), ctrlScale = (0.8, 1, 1.7))
     cmds.parent(["ikLegR", "ikFootR", "ikToeR"], "footCtrlR")
@@ -439,33 +423,50 @@ def buildSkeleton():
     jpos = cmds.joint("FootLockR", query = True, absolute = True, position = True)
     cmds.move(jpos[0], jpos[1], jpos[2], "heelTapPivotR.scalePivot", "heelTapPivotR.rotatePivot")
 
-    # Left Arm
-    # elbow
-    makeControl("elbowPoleCtrlL", ctrlSize = 0.5, snapJoint = "ElbowL", orientJoint ="ElbowL", offset = ("z", -4), ctrlNormal = (0, 0, 1))
+    ## FK Arms
+    # left shoulder
+    makeControl("shoulderCtrlL", ctrlSize = 2, snapJoint = "ShoulderL", orientJoint = "ElbowL", ctrlNormal = (0, 1, 0))
+    cmds.orientConstraint("shoulderCtrlL", "FKJ_ShoulderL", maintainOffset = True)
+    lockHide("shoulderCtrlL", rotate = False)
+    #left elbow
+    makeControl("elbowCtrlL", ctrlSize = 1.5, snapJoint = "ElbowL", orientJoint = "WristL", ctrlNormal = (0, 1, 0), constrain = "shoulderCtrlL")
+    cmds.orientConstraint("elbowCtrlL", "FKJ_ElbowL", maintainOffset = True)
+    lockHide("elbowCtrlL", rotate = False)
+    # right shoulder
+    makeControl("shoulderCtrlR", ctrlSize = 2, snapJoint = "ShoulderR", orientJoint = "ElbowR", ctrlNormal = (0, 1, 0))
+    cmds.orientConstraint("shoulderCtrlR", "FKJ_ShoulderR", maintainOffset = True)
+    lockHide("shoulderCtrlR", rotate = False)
+    #right elbow
+    makeControl("elbowCtrlR", ctrlSize = 1.5, snapJoint = "ElbowR", orientJoint = "WristR", ctrlNormal = (0, 1, 0), constrain = "shoulderCtrlR")
+    cmds.orientConstraint("elbowCtrlR", "FKJ_ElbowR", maintainOffset = True)
+    lockHide("elbowCtrlR", rotate = False)
+
+    ## IK Arms
+    cmds.ikHandle(name = "ikArmL", startJoint = "IKJ_ShoulderL", endEffector = "IKJ_WristL", solver = "ikRPsolver")
+    cmds.ikHandle(name = "ikArmR", startJoint = "IKJ_ShoulderR", endEffector = "IKJ_WristR", solver = "ikRPsolver")
+    # Left elbow
+    makeControl("elbowPoleCtrlL", ctrlSize = 0.5, snapJoint = "IKJ_ElbowL", orientJoint ="IKJ_ElbowL", offset = ("z", -4), ctrlNormal = (0, 0, 1))
     cmds.poleVectorConstraint("elbowPoleCtrlL", "ikArmL")
-    #cmds.pointConstraint("ikArmL", "elbowCtrlL", maintainOffset = True, skip = "y")
     cmds.parent("elbowPoleCtrlL", "superMover")
     lockHide("elbowPoleCtrlL", translate = False)
-    # wrist
-    makeControl("wristCtrlL", ctrlSize = 2, snapJoint = "WristL", orientJoint ="ElbowL", ctrlNormal = (0, 1, 0))
+    # Left wrist
+    makeControl("wristCtrlL", ctrlSize = 2, snapJoint = "WristL", orientJoint ="IKJ_ElbowL", ctrlNormal = (0, 1, 0))
     #lockHide("wristCtrlL", translate = False)
     cmds.pointConstraint("wristCtrlL", "ikArmL", maintainOffset = True)
-    cmds.orientConstraint("wristCtrlL", "WristL", maintainOffset = True)
-    #cmds.orientConstraint("WristL", "wristCtrlL", maintainOffset = True)
+    cmds.orientConstraint("wristCtrlL", "IKJ_WristL", maintainOffset = True)
+    #cmds.orientConstraint("IKJ_WristL", "wristCtrlL", maintainOffset = True)
 
-    # Right Arm
-    # elbow
-    makeControl("elbowPoleCtrlR", ctrlSize = 0.5, snapJoint = "ElbowR", offset = ("z", -4), ctrlNormal = (0, 0, 1))
+    # Right elbow
+    makeControl("elbowPoleCtrlR", ctrlSize = 0.5, snapJoint = "IKJ_ElbowR", offset = ("z", -4), ctrlNormal = (0, 0, 1))
     cmds.poleVectorConstraint("elbowPoleCtrlR", "ikArmR")
-    #cmds.pointConstraint("ikArmR", "elbowCtrlR", maintainOffset = True, skip = "y")
     cmds.parent("elbowPoleCtrlR", "superMover")
     lockHide("elbowPoleCtrlR", translate = False)
-    # wrist
-    makeControl("wristCtrlR", ctrlSize = 2, snapJoint = "WristR", orientJoint ="ElbowR", ctrlNormal = (0, 1, 0))
+    # Right wrist
+    makeControl("wristCtrlR", ctrlSize = 2, snapJoint = "IKJ_WristR", orientJoint ="IKJ_ElbowR", ctrlNormal = (0, 1, 0))
     #lockHide("wristCtrlR", translate = False)
     cmds.pointConstraint("wristCtrlR", "ikArmR", maintainOffset = True)
-    cmds.orientConstraint("wristCtrlR", "WristR", maintainOffset = True)
-    #cmds.orientConstraint("WristR", "wristCtrlR", maintainOffset = True)
+    cmds.orientConstraint("wristCtrlR", "IKJ_WristR", maintainOffset = True)
+    #cmds.orientConstraint("IKJ_WristR", "wristCtrlR", maintainOffset = True)
 
     # Finger FK controls
     numFingers = cmds.intSliderGrp("fingersNumUi", query = True, value = True)
@@ -482,8 +483,6 @@ def buildSkeleton():
         makeControl("FingerEndCtrl" + str(i) + "L", ctrlSize = 0.5, snapJoint = "FingerEnd" + str(i) + "L", 
                     orientJoint = "FingerTip" + str(i) + "L", ctrlNormal = (0, 1, 0), constrain = "FingerMiddleCtrl" + str(i) + "L")
         cmds.orientConstraint("FingerEndCtrl" + str(i) + "L", "FingerEnd" + str(i) + "L", maintainOffset = True)
-        
-        #makeControl("FingerTipCtrl" + str(i) + "L", ctrlSize = 0.5, snapJoint = "FingerTip" + str(i) + "L", ctrlNormal = (1, 0, 0))
 
         # right
         makeControl("FingerBaseCtrl" + str(i) + "R", ctrlSize = 0.5, snapJoint = "FingerBase" + str(i) + "R",
@@ -497,8 +496,6 @@ def buildSkeleton():
         makeControl("FingerEndCtrl" + str(i) + "R", ctrlSize = 0.5, snapJoint = "FingerEnd" + str(i) + "R", 
                     orientJoint = "FingerTip" + str(i) + "R", ctrlNormal = (0, 1, 0), constrain = "FingerMiddleCtrl" + str(i) + "R")
         cmds.orientConstraint("FingerEndCtrl" + str(i) + "R", "FingerEnd" + str(i) + "R", maintainOffset = True)
-
-        #makeControl("FingerTipCtrl" + str(i) + "R", ctrlSize = 0.5, snapJoint = "FingerTip" + str(i) + "R", ctrlNormal = (1, 0, 0))
     
     # left thumb
     makeControl("ThumbBaseCtrlL", ctrlSize = 0.5, snapJoint = "ThumbBaseL", 
@@ -512,8 +509,6 @@ def buildSkeleton():
     makeControl("ThumbEndCtrlL", ctrlSize = 0.5, snapJoint = "ThumbEndL", 
                 orientJoint = "ThumbMidL", ctrlNormal = (0, 1, 0), constrain = "ThumbMidCtrlL")
     cmds.orientConstraint("ThumbEndCtrlL", "ThumbEndL", maintainOffset = True)
-
-    #makeControl("ThumbTipCtrlL", ctrlSize = 0.5, snapJoint = "ThumbTipL", ctrlNormal = (0, 0, 1))
     
     # right thumb
     makeControl("ThumbBaseCtrlR", ctrlSize = 0.5, snapJoint = "ThumbBaseR", 
@@ -528,11 +523,9 @@ def buildSkeleton():
                 orientJoint = "ThumbMidR", ctrlNormal = (0, 1, 0), constrain = "ThumbMidCtrlR")
     cmds.orientConstraint("ThumbEndCtrlR", "ThumbEndR", maintainOffset = True)
 
-    #makeControl("ThumbTipCtrlR", ctrlSize = 0.5, snapJoint = "ThumbTipR", ctrlNormal = (0, 0, 1))
-
     # Finger IK controls
     ''' 
-    ### this is totaly broken and wont make it into the rig before the assignment deadline ###
+    ### this is totaly broken and wont make it into the rig before the deadline ###
     for i in range(1, numFingers):
         cmds.ikHandle(name = "ikFinger" + str(i) + "L", startJoint = "IKJFingerBase" + str(i) + "L", 
                 endEffector = "IKJFingerTip" + str(i) + "L", solver = "ikSCsolver")
