@@ -1,9 +1,13 @@
 import maya.cmds as cmds
 
+import AutoRig
+import proxyObj
+from Control import Control
+
 def FkIkBlend(joints, name, pvOffset, switchCtrl, side=""):
     '''Create an FK/IK controls with blend from joint list
     Only works with RP solver
-    
+
     Args:
         joints, list, 3 joints to create controls on
         
@@ -15,6 +19,9 @@ def FkIkBlend(joints, name, pvOffset, switchCtrl, side=""):
         
     Kwargs:
         Side, str, Default="", optional side prefix e.g. "L" or "R"
+
+    Returns:
+        IK handle name
     '''
     # Duplicate and reparent joints
     for i in joints:
@@ -29,35 +36,33 @@ def FkIkBlend(joints, name, pvOffset, switchCtrl, side=""):
     cmds.parent("IKJ_" + joints[2], "IKJ_" + joints[1])
 
     # FK Controls
-    controlFK0 = joints[0] + "FK_Ctrl" + side
-    makeControl(controlFK0, ctrlSize=1.5, snapJoint=joints[0], orientJoint=joints[1], ctrlNormal=(0, 1, 0))
-    cmds.orientConstraint(controlFK0, "FKJ_" + joints[0], maintainOffset=True)
-    cmds.pointConstraint(joints[0], controlFK0, maintainOffset=True)
-    lockHide(controlFK0, rotate=False, vis=False)
+    ctrlName = joints[0] + "FK_" + side
+    controlFK0 = Control(ctrlName, scale=1.5, snapTo=joints[0], pointTo=joints[1], hideChannels=["s", "t", "v"], direction="z")
+    cmds.orientConstraint(controlFK0.ctrlName, "FKJ_" + joints[0], maintainOffset=True)
+    cmds.pointConstraint(joints[0], controlFK0.ctrlName, maintainOffset=True)
 
-    controlFK1 = joints[1] + "FK_Ctrl" + side
-    makeControl(controlFK1, ctrlSize=1.5, snapJoint=joints[1], orientJoint=joints[2], ctrlNormal=(0, 1, 0))
-    cmds.orientConstraint(controlFK1, "FKJ_" + joints[1], maintainOffset=True)
-    lockHide(controlFK1, rotate=False, vis=False)
+    ctrlName = joints[1] + "FK_" + side
+    controlFK1 = Control(ctrlName, scale=1.5, snapTo=joints[1], pointTo=joints[0], hideChannels=["s", "t", "v"], direction="z")
+    cmds.orientConstraint(controlFK1.ctrlName, "FKJ_" + joints[1], maintainOffset=True)
 
-    controlFK2 = joints[2] + "FK_Ctrl" + side
-    makeControl(controlFK2, ctrlSize=1.5, snapJoint=joints[2], orientJoint=joints[1], ctrlNormal=(0, 1, 0))
-    cmds.orientConstraint(controlFK2, "FKJ_" + joints[2], maintainOffset=True)
-    lockHide(controlFK2, rotate=False, vis=False)
+    ctrlName = joints[2] + "FK_" + side
+    controlFK2 = Control(ctrlName, scale=1.5, snapTo=joints[2], pointTo=joints[1], hideChannels=["s", "t", "v"], direction="z")
+    cmds.orientConstraint(controlFK2.ctrlName, "FKJ_" + joints[2], maintainOffset=True)
 
-    cmds.parent(controlFK1, controlFK0)
-    cmds.parent(controlFK2, controlFK1)
+    cmds.parent(controlFK1.ctrlOff, controlFK0.ctrlName)
+    cmds.parent(controlFK2.ctrlOff, controlFK1.ctrlName)
     # IK Controls
-    controlIK = joints[2] + "IK_Ctrl" + side
-    cmds.ikHandle(name="ik" + name + side, startJoint="IKJ_" + joints[0], endEffector="IKJ_" + joints[2], solver="ikRPsolver")
-    makeControl(controlIK, ctrlSize=2, snapJoint=joints[2], orientJoint=joints[1], ctrlNormal=(0, 1, 0))
-    cmds.parentConstraint(controlIK, "ik" + name + side, maintainOffset=True)
-    cmds.orientConstraint(controlIK, "IKJ_" + joints[2], maintainOffset=True)
+    
+    handleName = "ik" + name + side
+    cmds.ikHandle(name=handleName, startJoint="IKJ_" + joints[0], endEffector="IKJ_" + joints[2], solver="ikRPsolver")
+    controlIK = Control(joints[2] + "IK_" + side, scale=2, snapTo=joints[2], pointTo=joints[1], 
+                        hideChannels=["s", "t", "v"], direction="z")
+    cmds.parentConstraint(controlIK.ctrlName, "ik" + name + side, maintainOffset=True)
+    cmds.orientConstraint(controlIK.ctrlName, "IKJ_" + joints[2], maintainOffset=True)
     # Polevector
-    controlIKPV = joints[1] + "PV_Ctrl" + side
-    makeControl(controlIKPV, ctrlSize=0.5, snapJoint=joints[1], offset=("z", pvOffset))
-    cmds.poleVectorConstraint(controlIKPV, "ik" + name + side)
-    lockHide(controlIKPV, translate=False, vis=False)
+    ctrlName = joints[1] + "PV_" + side
+    controlIKPV = Control(ctrlName, scale=0.5, direction="x", snapTo=joints[1], moveTo=("z", pvOffset), hideChannels=["s", "t", "v"])
+    cmds.poleVectorConstraint(controlIKPV.ctrlName, "ik" + name + side)
 
     # Constraints
     cmds.pointConstraint(joints[0], "FKJ_" + joints[0], maintainOffset=False)
@@ -87,76 +92,18 @@ def FkIkBlend(joints, name, pvOffset, switchCtrl, side=""):
     # Visibility Toggle
     cmds.addAttr(switchCtrl, longName="Show_FK_" + name + side, attributeType="bool", defaultValue=1)
     cmds.setAttr(switchCtrl + ".Show_FK_" + name + side, edit=True, keyable=True)
-    cmds.connectAttr(switchCtrl + ".Show_FK_" + name + side, controlFK0 + ".visibility")
-    cmds.connectAttr(switchCtrl + ".Show_FK_" + name + side, controlFK1 + ".visibility")
-    cmds.connectAttr(switchCtrl + ".Show_FK_" + name + side, controlFK2 + ".visibility")
+    cmds.connectAttr(switchCtrl + ".Show_FK_" + name + side, controlFK0.ctrlName + ".visibility")
+    cmds.connectAttr(switchCtrl + ".Show_FK_" + name + side, controlFK1.ctrlName + ".visibility")
+    cmds.connectAttr(switchCtrl + ".Show_FK_" + name + side, controlFK2.ctrlName + ".visibility")
 
     cmds.addAttr(switchCtrl, longName="Show_IK_" + name + side, attributeType="bool", defaultValue=1)
     cmds.setAttr(switchCtrl + ".Show_IK_" + name + side, edit=True, keyable=True)
-    cmds.connectAttr(switchCtrl + ".Show_IK_" + name + side, controlIK + ".visibility")
-    cmds.connectAttr(switchCtrl + ".Show_IK_" + name + side, controlIKPV + ".visibility")
-    
-    
-def makeControl(ctrlName, ctrlSize=1, ctrlShape=None, snapJoint=None, orientJoint=None,
-                offset=None, ctrlNormal=(0, 0, 0), ctrlScale=None, setParent=None, parentSuper=True):
-    ctrlSize = ctrlSize * cmds.getAttr("proxyRig.scaleY")
-    if ctrlShape:
-        pass
-    else:
-        cmds.circle(name=ctrlName, center=(0, 0, 0), normal=ctrlNormal, sweep=360, radius=ctrlSize)
-    if snapJoint:
-        pos = cmds.joint(snapJoint, query=True, absolute=True, position=True)
-        cmds.move(pos[0], pos[1], pos[2], ctrlName)
-    if orientJoint:
-        cmds.aimConstraint(orientJoint, ctrlName, aimVector=(0, 1, 0), maintainOffset=False)
-        cmds.aimConstraint(orientJoint, ctrlName, edit=True, remove=True)
-    if setParent:
-        cmds.parent(ctrlName, setParent)
-    if offset:
-        cmds.select(ctrlName)
-        if offset[0] == "x":
-            cmds.move(offset[1] * cmds.getAttr("proxyRig.scaleY"), x=True)
-        elif offset[0] == "y":
-            cmds.move(offset[1] * cmds.getAttr("proxyRig.scaleY"), y=True)
-        else:
-            cmds.move(offset[1] * cmds.getAttr("proxyRig.scaleY"), z=True)
-        cmds.select(clear=True)
-    if ctrlScale:
-        cmds.scale(ctrlScale[0], ctrlScale[1], ctrlScale[2], ctrlName)
+    cmds.connectAttr(switchCtrl + ".Show_IK_" + name + side, controlIK.ctrlName + ".visibility")
+    cmds.connectAttr(switchCtrl + ".Show_IK_" + name + side, controlIKPV.ctrlName + ".visibility")
 
-    # set control colour
-    if ctrlName[-1] == "L":
-        cmds.setAttr(ctrlName + ".overrideEnabled", 1)
-        cmds.setAttr(ctrlName + ".overrideColor", 6)
-    elif ctrlName[-1] == "R":
-        cmds.setAttr(ctrlName + ".overrideEnabled", 1)
-        cmds.setAttr(ctrlName + ".overrideColor", 13)
-    else:
-        cmds.setAttr(ctrlName + ".overrideEnabled", 1)
-        cmds.setAttr(ctrlName + ".overrideColor", 22)
+    return (handleName, controlIK.ctrlName)
 
-    freezeTransforms(ctrlName)
-    if parentSuper:
-        cmds.parent(ctrlName, "superMover")
-        
-        
+
 def freezeTransforms(obj):
     cmds.makeIdentity(obj, apply=True, translate=True, rotate=True, scale=True)
     cmds.delete(obj, constructionHistory=True)
-
-
-def lockHide(obj, translate=True, rotate=True, scale=True, vis=True):
-    if translate:
-        cmds.setAttr(obj + ".tx", lock=True, keyable=False, channelBox=False)
-        cmds.setAttr(obj + ".ty", lock=True, keyable=False, channelBox=False)
-        cmds.setAttr(obj + ".tz", lock=True, keyable=False, channelBox=False)
-    if rotate:
-        cmds.setAttr(obj + ".rx", lock=True, keyable=False, channelBox=False)
-        cmds.setAttr(obj + ".ry", lock=True, keyable=False, channelBox=False)
-        cmds.setAttr(obj + ".rz", lock=True, keyable=False, channelBox=False)
-    if scale:
-        cmds.setAttr(obj + ".sx", lock=True, keyable=False, channelBox=False)
-        cmds.setAttr(obj + ".sy", lock=True, keyable=False, channelBox=False)
-        cmds.setAttr(obj + ".sz", lock=True, keyable=False, channelBox=False)
-    if vis:
-        cmds.setAttr(obj + ".v", lock=True, keyable=False, channelBox=False)
