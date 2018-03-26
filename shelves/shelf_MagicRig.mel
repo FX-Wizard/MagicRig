@@ -30,7 +30,7 @@ global proc shelf_MagicRig () {
         -style "iconOnly" 
         -marginWidth 1
         -marginHeight 1
-        -command "import os\nimport sys\n\nscriptDir = os.path.expanduser(\"~/maya/2018/scripts/MagicRig-master\")\nsys.path.append(scriptDir)\n\nfrom AutoRig import *\n\nmain()" 
+        -command "import MagicRig" 
         -sourceType "python" 
         -commandRepeatable 1
         -flat 1
