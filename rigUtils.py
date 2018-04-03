@@ -19,9 +19,9 @@ def FkIkBlend(joints, name, pvOffset, switchCtrl, side=""):
         
     Kwargs:
         Side, str, Default="", optional side prefix e.g. "L" or "R"
-
+    
     Returns:
-        IK handle name
+        IK handle name, IK control name, IK control offset
     '''
     # Duplicate and reparent joints
     for i in joints:
@@ -51,12 +51,12 @@ def FkIkBlend(joints, name, pvOffset, switchCtrl, side=""):
 
     cmds.parent(controlFK1.ctrlOff, controlFK0.ctrlName)
     cmds.parent(controlFK2.ctrlOff, controlFK1.ctrlName)
-    # IK Controls
     
+    # IK Controls
     handleName = "ik" + name + side
     cmds.ikHandle(name=handleName, startJoint="IKJ_" + joints[0], endEffector="IKJ_" + joints[2], solver="ikRPsolver")
-    controlIK = Control(joints[2] + "IK_" + side, scale=2, snapTo=joints[2], pointTo=joints[1], 
-                        hideChannels=["s", "t", "v"], direction="z")
+    ctrlName = joints[2] + "IK_" + side
+    controlIK = Control(ctrlName, scale=2, snapTo=joints[2], pointTo=joints[1], hideChannels=["s", "t", "v"], direction="z")
     cmds.parentConstraint(controlIK.ctrlName, "ik" + name + side, maintainOffset=True)
     cmds.orientConstraint(controlIK.ctrlName, "IKJ_" + joints[2], maintainOffset=True)
     # Polevector
@@ -68,26 +68,26 @@ def FkIkBlend(joints, name, pvOffset, switchCtrl, side=""):
     cmds.pointConstraint(joints[0], "FKJ_" + joints[0], maintainOffset=False)
     cmds.pointConstraint(joints[0], "IKJ_" + joints[0], maintainOffset=False)
 
-    cmds.orientConstraint("FKJ_" + joints[0], "IKJ_" + joints[0], joints[0], weight=10, maintainOffset=False)
-    cmds.orientConstraint("FKJ_" + joints[1], "IKJ_" + joints[1], joints[1], weight=10, maintainOffset=False)
-    cmds.orientConstraint("FKJ_" + joints[2], "IKJ_" + joints[2], joints[2], weight=10, maintainOffset=False)
+    blend0 = cmds.orientConstraint("FKJ_" + joints[0], "IKJ_" + joints[0], joints[0], weight=10, maintainOffset=False)[0]
+    blend1 = cmds.parentConstraint("FKJ_" + joints[1], "IKJ_" + joints[1], joints[1], weight=10, maintainOffset=False)[0]
+    blend2 = cmds.parentConstraint("FKJ_" + joints[2], "IKJ_" + joints[2], joints[2], weight=10, maintainOffset=False)[0]
 
     # Add attributes
     cmds.addAttr(switchCtrl, longName="Blend_FkIk_" + name + side, attributeType="float", min=0, max=10, defaultValue=0)
     cmds.setAttr((switchCtrl + ".Blend_FkIk_" + name + side), edit=True, keyable=True)
 
-    cmds.connectAttr(switchCtrl + ".Blend_FkIk_" + name + side, joints[0] + "_orientConstraint1." + "FKJ_" + joints[0] + "W0")
-    cmds.connectAttr(switchCtrl + ".Blend_FkIk_" + name + side, joints[1] + "_orientConstraint1." + "FKJ_" + joints[1] + "W0")
-    cmds.connectAttr(switchCtrl + ".Blend_FkIk_" + name + side, joints[2] + "_orientConstraint1." + "FKJ_" + joints[2] + "W0")
+    cmds.connectAttr(switchCtrl + ".Blend_FkIk_" + name + side, blend0 + ".FKJ_" + joints[0] + "W0")
+    cmds.connectAttr(switchCtrl + ".Blend_FkIk_" + name + side, blend1 + ".FKJ_" + joints[1] + "W0")
+    cmds.connectAttr(switchCtrl + ".Blend_FkIk_" + name + side, blend2 + ".FKJ_" + joints[2] + "W0")
 
     rev = cmds.shadingNode("plusMinusAverage", asUtility=True, name=name + side + "_Minus")
     cmds.setAttr((rev + ".operation"), 2)
     cmds.setAttr(rev + ".input1D[0]", 10)
     cmds.connectAttr(switchCtrl + ".Blend_FkIk_" + name + side, rev + ".input1D[1]")
 
-    cmds.connectAttr(rev + ".output1D", joints[0] + "_orientConstraint1." + "IKJ_" + joints[0] + "W1")
-    cmds.connectAttr(rev + ".output1D", joints[1] + "_orientConstraint1." + "IKJ_" + joints[1] + "W1")
-    cmds.connectAttr(rev + ".output1D", joints[2] + "_orientConstraint1." + "IKJ_" + joints[2] + "W1")
+    cmds.connectAttr(rev + ".output1D", blend0 + ".IKJ_" + joints[0] + "W1")
+    cmds.connectAttr(rev + ".output1D", blend1 + ".IKJ_" + joints[1] + "W1")
+    cmds.connectAttr(rev + ".output1D", blend2 + ".IKJ_" + joints[2] + "W1")
 
     # Visibility Toggle
     cmds.addAttr(switchCtrl, longName="Show_FK_" + name + side, attributeType="bool", defaultValue=1)
@@ -101,9 +101,38 @@ def FkIkBlend(joints, name, pvOffset, switchCtrl, side=""):
     cmds.connectAttr(switchCtrl + ".Show_IK_" + name + side, controlIK.ctrlName + ".visibility")
     cmds.connectAttr(switchCtrl + ".Show_IK_" + name + side, controlIKPV.ctrlName + ".visibility")
 
-    return (handleName, controlIK.ctrlName)
+    return (handleName, controlIK.ctrlName, controlIK.ctrlOff)
 
 
 def freezeTransforms(obj):
     cmds.makeIdentity(obj, apply=True, translate=True, rotate=True, scale=True)
     cmds.delete(obj, constructionHistory=True)
+
+
+def uniqueName(name):
+    '''check name is unique and return unique name
+    Args:
+        name of object (string)
+    '''
+    newName = name
+    i = 1
+    while cmds.objExists(newName):
+        newName = name + str(i)
+        i += 1
+    return newName
+
+
+def locator(name, pos):
+    name = uniqueName(name)
+    newLoc = cmds.spaceLocator(name=name)[0]
+    AutoRig.proxyList.append(newLoc)
+    cmds.move(pos[0], pos[1], pos[2], newLoc)
+    # set colour
+    cmds.setAttr(newLoc + ".overrideEnabled", 1)
+    if "L" in name[-1]:
+        cmds.setAttr(newLoc + ".overrideColor", 6)
+    elif "R" in name[-1]:
+        cmds.setAttr(newLoc + ".overrideColor", 13)
+    else:
+        cmds.setAttr(newLoc + ".overrideColor", 22)
+    return newLoc
