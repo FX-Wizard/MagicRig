@@ -4,7 +4,23 @@ import json
 from ui import window
 
 class Control:
-    ''' Rig control class '''
+    ''' Creates new controller object
+    Kwargs:
+        name (string) name of new control
+        shape (string) shape of object, default "circle"
+        scale (list, float3) size of controller [X, Y, Z]
+        direction (char) direction control faces, "x" or "y" or "z"
+        snapTo (string) snap controller to object
+        pointTo (string) point controller at object
+        moveTo (string) move controller
+        parent (string) set controllers parent
+        lockChannels (list) ["t", "r", "s", "v"]
+        hideChannels (list) ["t", "r", "s", "v"]
+
+    Public Attr:
+        ctrlName, name of control
+        ctrlOff name of controls offset
+    '''
     def __init__(self,
                  name = "new_Ctrl",
                  #prefix = "",
@@ -89,9 +105,9 @@ class Control:
         # set control colour
         ctrlShape = cmds.listRelatives(ctrlObject, s=1)[0]
         cmds.setAttr(ctrlShape + ".overrideEnabled", 1)
-        if name[-1] == "L":
+        if "L" in name[-3:]:
             cmds.setAttr(ctrlShape + ".overrideColor", 6)
-        elif name[-1] == "R":
+        elif "R" in name[-3:]:
             cmds.setAttr(ctrlShape + ".overrideColor", 13)
         else:
             cmds.setAttr(ctrlShape + ".overrideColor", 22)
