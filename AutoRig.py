@@ -17,6 +17,7 @@ else:
     prefix = window.charNameBox.text()
     rootNode.addAttr("prefix", value=" ")
     rootNode.addAttr("masterScale", value=1.0)
+    rootNode.addAttr("masterControl", value=" ")
 
 # global joint lists
 proxyList = []
@@ -38,6 +39,156 @@ def makeProxyBiped():
     '''layout proxies for biped rig'''
     if cmds.objExists("proxyRig"):
         cmds.delete("proxyRig", "proxyExtra")
+    proxyList[:] = [] # Clear proxyList
+    # Proxy Group
+    cmds.group(name="proxyRig", empty=True)
+    # global instances
+    global root, spine, legL, legR, head, armL, armR
+    # Root proxy object
+    root = rigparts.root()
+    # Spine
+    sJointNum = window.spineJointNumBox.value()
+    spine = rigparts.spine(sJointNum)
+    # Leg + Foot
+    numToes = window.toesNumBox.value()
+    stretchy = window.stretchyIkBtn.checkState()
+    legL = rigparts.leg("L", stretchy, numToes)
+    legR = rigparts.leg("R", stretchy, numToes)
+    # Head
+    head = rigparts.head()
+    # Arm + Hand
+    numFingers = window.fingerNumBox.value()
+    armRoll = window.armRollBox.checkState()
+    armL = rigparts.arm("L", numFingers, armRoll, stretchy)
+    armR = rigparts.arm("R", numFingers, armRoll, stretchy)
+    # initial mirror
+    cmds.select(clear=True)
+    mirrorProxy("R")
+
+
+def makeProxyQuad():
+    '''layout proxies for quadruped rig'''
+    proxyList[:] = [] # Clear proxyList
+
+
+def makeProxyCustom():
+    '''layout proxies for custom rig'''
+    proxyList[:] = [] # Clear proxyList
+
+
+def scaleProxy():
+    '''change total size of proxy rig'''
+    value = window.rigScaleBox.value()
+    cmds.scale(value, value, value, "proxyRig", pivot=(0, 0, 0))
+    cmds.setAttr("MR_Root.masterScale", value)
+
+
+def resetProxy():
+    '''delete proxy rig and create new proxy rig'''
+    cmds.delete("proxyRig")
+    proxyList[:] = []
+    proxyExtra[:] = []
+    jointList[:] = []
+    if window.stackedWidget.getCurrentIndex() == 1:
+        makeProxyBiped()
+    elif window.stackedWidget.getCurrentIndex() == 2:
+        makeProxyQuad()
+    else:
+        makeProxyCustom()
+
+
+def mirrorProxy(orient):
+    if orient == "R":
+        source = "L"
+    else:
+        source = "R"
+    for proxy in proxyList:
+        if orient in proxy[-3:]:
+            pos = cmds.getAttr("%s.translate" % proxy[::-1].replace(orient, source, 1)[::-1])
+            cmds.setAttr("%s.translate" % proxy, (pos[0][0] * -1), pos[0][1], pos[0][2], type="float3")
+    cmds.select(clear=True)
+
+
+def makeSkeletonBiped():
+    try:
+        root.toJoint()
+        spine.toJoint(root.rootJoint)
+        legL.toJoint(root.rootJoint)
+        legR.toJoint(root.rootJoint)
+        armL.toJoint(spine.topJoint)
+        armR.toJoint(spine.topJoint)
+        head.toJoint(spine.topJoint)
+        cmds.delete("proxyExtra")
+        addControls()
+    except:
+        makeProxyBiped()
+
+
+def makeSkeletonQuad():
+    proxyToJoint()
+
+
+# Step 2: Create Skeleton
+def proxyToJoint():
+    # Convert proxies to joints
+    proxyList = cmds.ls("proxyRig", dagObjects=True, exactType="transform")
+    del proxyList[0]
+
+    for proxy in proxyList:
+        cmds.select(proxy)
+        jointName = proxy.lstrip("p")
+        cmds.joint(name=jointName)
+        cmds.ungroup(proxy)
+        cmds.delete(proxy)
+        jointList.append(jointName)
+        cmds.makeIdentity(jointName, apply=True, translate=True, rotate=True, scale=True, jointOrient=True)
+
+    jointGroup = cmds.group(jointList, name=prefix + "_rig")
+    cmds.parent(jointGroup, world=True)
+
+    cmds.delete("proxyExtra")
+    cmds.delete("proxyRig")
+
+
+def hideJoints():
+    '''hide all joints in jointList'''
+    for joint in jointList:
+        cmds.setAttr(joint + ".drawStyle", 2)
+
+
+def addControls():
+    ##########################################################################
+    # Controllers
+    ##########################################################################
+    superMover = Control("Master_Control", shape="ctrlMultiArrow", scale=2.2, parent=None)
+    cmds.setAttr("MR_Root.masterControl", superMover.ctrlName, type="string")
+
+    head.control()
+
+    spine.control()
+
+    legL.control()
+    legR.control()
+
+    armL.control()
+    armR.control()
+
+
+def orientJoints(name, direction):
+    # ensure the X axis of the joint is lined up with the direction of bone
+    # Commet is an example script that can help
+    if direction == "end":
+        cmds.setAttr("%s.jointOrientX" % name, 0)
+        cmds.setAttr("%s.jointOrientY" % name, 0)
+        cmds.setAttr("%s.jointOrientZ" % name, 0)
+
+
+def endJointOrient(name):
+    cmds.setAttr("%s.jointOrientX" % name, 0)
+    cmds.setAttr("%s.jointOrientY" % name, 0)
+    cmds.setAttr("%s.jointOrientZ" % name, 0)
+    # important to set end joint orient to 0
+
     proxyList[:] = [] # Clear proxyList
     # Proxy Group
     cmds.group(name="proxyRig", empty=True)
