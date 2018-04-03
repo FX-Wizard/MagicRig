@@ -4,29 +4,18 @@ from Control import Control
 
 class proxyObj:
     def __init__(self, proxyName, move=None, proxyBone=None, radius=0.5):
-        # scale = AutoRig.getModelScale()
+        # check name is unique
+        newName = proxyName
+        i = 1
+        while cmds.objExists(newName):
+            newName = proxyName + str(i)
+            i += 1
+        name = newName
         # Make Proxy Shape
-        '''
-        cmds.circle(name="proxyShape",
-                    normal=(0, 1, 0),
-                    center=(0, 0, 0),
-                    sweep=360,
-                    radius=(0.25))
-        cmds.duplicate(returnRootsOnly=True, name=("proxyShapeY"))
-        cmds.rotate(90, 0, 0)
-        cmds.makeIdentity(apply=True, t=1, r=1, s=1, n=0)
-        cmds.duplicate(returnRootsOnly=True, name=("proxyShapeZ"))
-        cmds.rotate(0, 90, 0)
-        cmds.makeIdentity(apply=True, t=1, r=1, s=1, n=0)
-        cmds.parent(("proxyShapeYShape", "proxyShapeZShape"), "proxyShape", shape=True, relative=True)
-        cmds.delete("proxyShapeY", "proxyShapeZ")
-        '''
-
-        obj = cmds.sphere(name=proxyName, r=radius, d=3, s=4, nsp=2, ch=False)[0]
+        obj = cmds.sphere(name=name, r=radius, d=3, s=4, nsp=2, ch=False)[0]
         objShape = cmds.listRelatives(obj, shapes=True)[0]
         cmds.disconnectAttr(objShape + ".instObjGroups[0]", "initialShadingGroup.dagSetMembers[0]")
-        #cmds.rename("proxyShape", proxyName)
-
+        # set colour
         cmds.setAttr(objShape + ".overrideEnabled", 1)
         if proxyName[-1] == "L":
             cmds.setAttr(objShape + ".overrideColor", 6)
@@ -34,12 +23,12 @@ class proxyObj:
             cmds.setAttr(objShape + ".overrideColor", 13)
         else:
             cmds.setAttr(objShape + ".overrideColor", 4)
-
+        
         if move:
-            cmds.move(move[0], move[1], move[2], proxyName)
+            cmds.move(move[0], move[1], move[2], name)
 
         if proxyBone:
-            bone = Control(proxyName + "_bone", shape="proxyBone", scale=[radius, radius, radius], snapTo=proxyBone, pointTo=obj, lockChannels=["t", "r", "s"])
+            bone = Control(name + "_bone", shape="proxyBone", scale=[radius, radius, radius], snapTo=proxyBone, pointTo=obj, lockChannels=["t", "r", "s"])
 
             tip = cmds.cluster(bone.ctrlName + ".cv[2]", bone.ctrlName + ".cv[6]", name="_tip_")[0]
             cmds.setAttr(tip + "Handle.visibility", 0)
@@ -51,7 +40,16 @@ class proxyObj:
             cmds.parent(base + "Handle", bone.ctrlOff)
             cmds.pointConstraint(proxyBone, base + "Handle")
 
-            AutoRig.proxyExtra.append(bone.ctrlOff)
+            try:
+                cmds.parent(bone.ctrlOff, "proxyExtra")
+            except:
+                cmds.group(bone.ctrlOff, name="proxyExtra")
+            
+        AutoRig.proxyList.append(name)
+        try:
+            cmds.parent(name, "proxyRig")
+        except:
+            cmds.group(name, name="proxyRig")
 
-        AutoRig.proxyList.append(proxyName)
-        cmds.parent(proxyName, "proxyRig")
+        # public names
+        self.name = name
