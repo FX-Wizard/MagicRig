@@ -122,11 +122,22 @@ def uniqueName(name):
     return newName
 
 
-def locator(name, pos):
+def locator(name, pos=[0, 0, 0], snapTo=None):
+    ''' Create new locator 
+    Args:
+        name (string) name of locator
+        pos (float3) x, y, z position
+    Kwargs:
+        snapTo (string) object to snap to
+    Returns:
+        new locators unique name
+    '''
     name = uniqueName(name)
     newLoc = cmds.spaceLocator(name=name)[0]
     AutoRig.proxyList.append(newLoc)
-    cmds.move(pos[0], pos[1], pos[2], newLoc)
+    if snapTo and cmds.objExists(snapTo):
+        cmds.delete(cmds.pointConstraint(snapTo, newLoc))
+    cmds.move(pos[0], pos[1], pos[2], newLoc, relative=True)
     # set colour
     cmds.setAttr(newLoc + ".overrideEnabled", 1)
     if "L" in name[-1]:
@@ -135,4 +146,9 @@ def locator(name, pos):
         cmds.setAttr(newLoc + ".overrideColor", 13)
     else:
         cmds.setAttr(newLoc + ".overrideColor", 22)
+    # add to rig group
+    try:
+        cmds.parent(newLoc, cmds.getAttr("MR_Root.prefix") + "_Rig")
+    except:
+        cmds.group(newLoc, name=cmds.getAttr("MR_Root.prefix") + "_Rig")
     return newLoc
