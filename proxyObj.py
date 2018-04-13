@@ -14,12 +14,15 @@ class proxyObj:
         # Make Proxy Shape
         obj = cmds.sphere(name=name, r=radius, d=3, s=4, nsp=2, ch=False)[0]
         objShape = cmds.listRelatives(obj, shapes=True)[0]
-        cmds.disconnectAttr(objShape + ".instObjGroups[0]", "initialShadingGroup.dagSetMembers[0]")
+        try: # catch bug where initial shading group cannot be disconnected
+            cmds.disconnectAttr(objShape + ".instObjGroups[0]", "initialShadingGroup.dagSetMembers[0]")
+        except:
+            cmds.error("Failed to disconnect initialShadingGroup")
         # set colour
         cmds.setAttr(objShape + ".overrideEnabled", 1)
-        if proxyName[-1] == "L":
+        if "L" in proxyName[-3:]:
             cmds.setAttr(objShape + ".overrideColor", 6)
-        elif proxyName[-1] == "R":
+        elif "R" in proxyName[-3:]:
             cmds.setAttr(objShape + ".overrideColor", 13)
         else:
             cmds.setAttr(objShape + ".overrideColor", 4)
@@ -47,9 +50,9 @@ class proxyObj:
             
         AutoRig.proxyList.append(name)
         try:
-            cmds.parent(name, "proxyRig")
+            cmds.parent(name, cmds.getAttr("MR_Root.prefix") + "_Rig")
         except:
-            cmds.group(name, name="proxyRig")
+            cmds.group(name, name=cmds.getAttr("MR_Root.prefix") + "_Rig")
 
         # public names
         self.name = name
