@@ -24,16 +24,18 @@ class MrWindow(MayaQWidgetDockableMixin, QtWidgets.QDialog):
         self.base_instance = setupUi(os.path.expanduser("~/maya/%s/scripts/MagicRig/window.ui" % mayaVersion), self)
         
         # connecting ui elements to functions
-        # start page
-        self.newRigBipBtn.clicked.connect(self.newRigBipFunc)
-        self.newRigQipBtn.clicked.connect(self.newRigQipFunc)
-        self.newRigCusBtn.clicked.connect(self.newRigCusFunc)
-        # biped page
+        ### start page ###
+        self.newRigBipBtn.clicked.connect(lambda: self.changePage(2))
+        self.newRigQipBtn.clicked.connect(lambda: self.changePage(1))
+        self.newRigCusBtn.clicked.connect(lambda: self.changePage(3))
+        ### biped page ###
+        self.backBtn.clicked.connect(lambda: self.changePage(0))
+
         self.charNameBox.textChanged.connect(self.charNameFunc)
 
-        self.spineJointNumBox.valueChanged.connect(self.placeHolder)
-        self.fingerNumBox.valueChanged.connect(self.placeHolder)
-        self.toesNumBox.valueChanged.connect(self.placeHolder)
+        #self.spineJointNumBox.valueChanged.connect(self.placeHolder)
+        self.fingerNumBox.valueChanged.connect(self.fingerNumChanged)
+        self.toesNumBox.valueChanged.connect(self.toesNumChanged)
 
         self.footLockBox.stateChanged.connect(self.placeHolder)
         self.hipRollBox.stateChanged.connect(self.placeHolder)
@@ -50,9 +52,24 @@ class MrWindow(MayaQWidgetDockableMixin, QtWidgets.QDialog):
         self.createRigBtn.clicked.connect(lambda: AutoRig.makeSkeletonBiped())
 
         self.skinningBtn.clicked.connect(self.skinMenu)
-        # quadruped page
+        ### quadruped page ###
+        self.qBackBtn.clicked.connect(lambda: self.changePage(0))
 
-        # custompage
+        self.qCharNameBox.textChanged.connect(self.qCharNameFunc)
+
+        self.createProxyQBtn.clicked.connect(lambda: AutoRig.makeProxyQuad())
+
+        self.qRigScaleBox.valueChanged.connect(lambda: AutoRig.scaleProxy())
+
+        self.createRigQBtn.clicked.connect(lambda: AutoRig.makeSkeletonQuad())
+
+        self.qSkinningBtn.clicked.connect(self.skinMenu)
+        
+        ### custompage ###
+        self.cBackBtn.clicked.connect(lambda: self.changePage(0))
+        #self.charNameBox.textChanged.connect(self.charNameFunc)
+
+        self.cSkinningBtn.clicked.connect(self.skinMenu)
 
     def charNameFunc(self):
         '''replace spaces with underscores'''
@@ -60,23 +77,35 @@ class MrWindow(MayaQWidgetDockableMixin, QtWidgets.QDialog):
         newText = text.replace(" ", "_")
         self.charNameBox.setText(newText)
         AutoRig.prefix = newText
-        cmds.setAttr("MR_Root.prefix", text, type="string")
-        
+        cmds.setAttr("MR_Root.prefix", newText, type="string")
 
-    def newRigBipFunc(self):
-        self.stackedWidget.setCurrentIndex(2)
+
+    def qCharNameFunc(self):
+        '''replace spaces with underscores'''
+        text = self.qCharNameBox.text()
+        newText = text.replace(" ", "_")
+        self.qCharNameBox.setText(newText)
+        AutoRig.prefix = newText
+        cmds.setAttr("MR_Root.prefix", newText, type="string")
 
     
-    def newRigQipFunc(self):
-        self.stackedWidget.setCurrentIndex(1)
+    def spineNumChanged(self):
+        pass
 
 
-    def newRigCusFunc(self):
-        self.stackedWidget.setCurrentIndex(3)
+    def fingerNumChanged(self):
+        pass
+        # get num existing fingers from node
+        # add new fingers
+        # update node
 
 
-    def goToStartFunc(self):
-        self.stackedWidget.setCurrentIndex(0)
+    def toesNumChanged(self):
+        pass
+
+
+    def changePage(self, index):
+        self.stackedWidget.setCurrentIndex(index)
 
 
     def placeHolder(self):
