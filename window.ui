@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>587</width>
-    <height>892</height>
+    <height>957</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,7 +17,7 @@
    <item row="0" column="0">
     <widget class="QStackedWidget" name="stackedWidget">
      <property name="currentIndex">
-      <number>2</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="startPage">
       <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -121,8 +121,22 @@
      </widget>
      <widget class="QWidget" name="qupedPage">
       <layout class="QGridLayout" name="gridLayout_7">
-       <item row="1" column="0">
+       <item row="13" column="0">
+        <widget class="QPushButton" name="qSkinningBtn">
+         <property name="text">
+          <string>Skinning</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0">
         <layout class="QVBoxLayout" name="verticalLayout">
+         <item alignment="Qt::AlignLeft">
+          <widget class="QCommandLinkButton" name="qBackBtn">
+           <property name="text">
+            <string>Back</string>
+           </property>
+          </widget>
+         </item>
          <item>
           <widget class="QLabel" name="newQuadRigLbl">
            <property name="font">
@@ -141,20 +155,20 @@
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout_4">
            <item>
-            <widget class="QLabel" name="label_2">
+            <widget class="QLabel" name="charNameLbl_2">
              <property name="text">
               <string>Character Name</string>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QLineEdit" name="lineEdit"/>
+            <widget class="QLineEdit" name="qCharNameBox"/>
            </item>
           </layout>
          </item>
         </layout>
        </item>
-       <item row="8" column="0">
+       <item row="10" column="0">
         <widget class="QLabel" name="controlRigQLbl">
          <property name="font">
           <font>
@@ -169,14 +183,14 @@
          </property>
         </widget>
        </item>
-       <item row="9" column="0">
+       <item row="12" column="0">
         <widget class="QPushButton" name="createRigQBtn">
          <property name="text">
           <string>Create Rig !</string>
          </property>
         </widget>
        </item>
-       <item row="4" column="0">
+       <item row="6" column="0">
         <layout class="QVBoxLayout" name="verticalLayout_3">
          <item>
           <widget class="QLabel" name="proxyRigQLbl">
@@ -196,7 +210,7 @@
          <item>
           <layout class="QGridLayout" name="gridLayout_3">
            <item row="0" column="0">
-            <widget class="QLabel" name="label_5">
+            <widget class="QLabel" name="qSpineJointLbl">
              <property name="text">
               <string>Spine Joint Number</string>
              </property>
@@ -210,20 +224,56 @@
             </widget>
            </item>
            <item row="1" column="1">
-            <widget class="QSpinBox" name="tailNumBox"/>
+            <widget class="QSpinBox" name="tailNumBox">
+             <property name="value">
+              <number>4</number>
+             </property>
+            </widget>
            </item>
            <item row="2" column="0">
-            <widget class="QLabel" name="label_6">
+            <widget class="QLabel" name="qToesNumLbl">
              <property name="text">
               <string>Toes Number</string>
              </property>
             </widget>
            </item>
            <item row="2" column="1">
-            <widget class="QSpinBox" name="toesNumQBox"/>
+            <widget class="QSpinBox" name="qToesNumBox">
+             <property name="value">
+              <number>3</number>
+             </property>
+            </widget>
            </item>
            <item row="0" column="1">
-            <widget class="QSpinBox" name="spineNumQBox"/>
+            <widget class="QSpinBox" name="qSpineNumBox">
+             <property name="value">
+              <number>4</number>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_5">
+           <item>
+            <widget class="QLabel" name="qRigScaleLbl">
+             <property name="text">
+              <string>Rig Scale</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QDoubleSpinBox" name="qRigScaleBox">
+             <property name="minimum">
+              <double>0.100000000000000</double>
+             </property>
+             <property name="singleStep">
+              <double>0.100000000000000</double>
+             </property>
+             <property name="value">
+              <double>1.000000000000000</double>
+             </property>
+            </widget>
            </item>
           </layout>
          </item>
@@ -236,11 +286,25 @@
          </item>
         </layout>
        </item>
+       <item row="11" column="0">
+        <widget class="QLabel" name="label_2">
+         <property name="text">
+          <string>Nothing to see here yet</string>
+         </property>
+        </widget>
+       </item>
       </layout>
      </widget>
      <widget class="QWidget" name="bipedPage">
       <layout class="QGridLayout" name="gridLayout_5">
-       <item row="0" column="0">
+       <item row="0" column="0" alignment="Qt::AlignLeft">
+        <widget class="QCommandLinkButton" name="backBtn">
+         <property name="text">
+          <string>Back</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
         <widget class="QLabel" name="newBipedLbl">
          <property name="font">
           <font>
@@ -255,7 +319,7 @@
          </property>
         </widget>
        </item>
-       <item row="9" column="0">
+       <item row="10" column="0">
         <widget class="QLabel" name="controlOptionsLbl">
          <property name="font">
           <font>
@@ -270,21 +334,21 @@
          </property>
         </widget>
        </item>
-       <item row="7" column="0">
+       <item row="8" column="0">
         <widget class="QPushButton" name="createProxyBtn">
          <property name="text">
           <string>Create Proxy !</string>
          </property>
         </widget>
        </item>
-       <item row="14" column="0">
+       <item row="15" column="0">
         <widget class="QPushButton" name="skinningBtn">
          <property name="text">
           <string>Skinning</string>
          </property>
         </widget>
        </item>
-       <item row="4" column="0">
+       <item row="5" column="0">
         <layout class="QGridLayout" name="gridLayout">
          <item row="0" column="0">
           <widget class="QCheckBox" name="footLockBox">
@@ -328,7 +392,7 @@
          </item>
         </layout>
        </item>
-       <item row="3" column="0">
+       <item row="4" column="0">
         <layout class="QGridLayout" name="gridLayout_2">
          <item row="1" column="0">
           <widget class="QLabel" name="FingerNumLbl">
@@ -377,7 +441,7 @@
          </item>
         </layout>
        </item>
-       <item row="5" column="0">
+       <item row="6" column="0">
         <layout class="QHBoxLayout" name="horizontalLayout_3">
          <item>
           <widget class="QLabel" name="rigScaleLbl">
@@ -404,7 +468,7 @@
          </item>
         </layout>
        </item>
-       <item row="10" column="0">
+       <item row="11" column="0">
         <layout class="QGridLayout" name="gridLayout_6">
          <item row="0" column="0">
           <widget class="QCheckBox" name="stretchyIkBtn">
@@ -425,14 +489,14 @@
          </item>
         </layout>
        </item>
-       <item row="12" column="0" rowspan="2">
+       <item row="13" column="0" rowspan="2">
         <widget class="QPushButton" name="createRigBtn">
          <property name="text">
           <string>Create Rig</string>
          </property>
         </widget>
        </item>
-       <item row="2" column="0">
+       <item row="3" column="0">
         <widget class="QLabel" name="proxyOptionsLbl">
          <property name="font">
           <font>
@@ -447,7 +511,7 @@
          </property>
         </widget>
        </item>
-       <item row="1" column="0">
+       <item row="2" column="0">
         <layout class="QHBoxLayout" name="horizontalLayout_2">
          <item>
           <widget class="QLabel" name="charNameLbl">
@@ -461,7 +525,7 @@
          </item>
         </layout>
        </item>
-       <item row="8" column="0">
+       <item row="9" column="0">
         <layout class="QHBoxLayout" name="horizontalLayout">
          <item>
           <widget class="QPushButton" name="mirrorLeftBtn">
@@ -489,57 +553,61 @@
       </layout>
      </widget>
      <widget class="QWidget" name="custPage">
-      <widget class="QLabel" name="label_4">
-       <property name="geometry">
-        <rect>
-         <x>10</x>
-         <y>20</y>
-         <width>511</width>
-         <height>33</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Custom Rig</string>
-       </property>
-      </widget>
-      <widget class="QScrollArea" name="scrollArea">
-       <property name="geometry">
-        <rect>
-         <x>0</x>
-         <y>70</y>
-         <width>841</width>
-         <height>711</height>
-        </rect>
-       </property>
-       <property name="widgetResizable">
-        <bool>true</bool>
-       </property>
-       <widget class="QWidget" name="scrollAreaWidgetContents">
-        <property name="geometry">
-         <rect>
-          <x>0</x>
-          <y>0</y>
-          <width>839</width>
-          <height>709</height>
-         </rect>
-        </property>
-       </widget>
-      </widget>
-      <widget class="QTableWidget" name="tableWidget">
-       <property name="geometry">
-        <rect>
-         <x>20</x>
-         <y>851</y>
-         <width>781</width>
-         <height>291</height>
-        </rect>
-       </property>
-       <column>
-        <property name="text">
-         <string>iconCol</string>
-        </property>
-       </column>
-      </widget>
+      <layout class="QGridLayout" name="gridLayout_8">
+       <item row="0" column="0" alignment="Qt::AlignLeft">
+        <widget class="QCommandLinkButton" name="cBackBtn">
+         <property name="text">
+          <string>Back</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0">
+        <layout class="QHBoxLayout" name="horizontalLayout_6">
+         <item>
+          <widget class="QLabel" name="charNameLbl_3">
+           <property name="text">
+            <string>Character Name:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="cCharNameBox"/>
+         </item>
+        </layout>
+       </item>
+       <item row="2" column="0">
+        <widget class="QLabel" name="CustomRigLbl">
+         <property name="font">
+          <font>
+           <pointsize>12</pointsize>
+           <weight>75</weight>
+           <italic>true</italic>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>Custom Rig</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="0">
+        <widget class="QListView" name="listView"/>
+       </item>
+       <item row="5" column="0">
+        <widget class="QPushButton" name="buildRigBtn">
+         <property name="text">
+          <string>Build Rig!</string>
+         </property>
+        </widget>
+       </item>
+       <item row="6" column="0">
+        <widget class="QPushButton" name="cSkinningBtn">
+         <property name="text">
+          <string>Skinning</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </widget>
     </widget>
    </item>
@@ -548,14 +616,14 @@
  <resources/>
  <connections>
   <connection>
-   <sender>charNameBox</sender>
-   <signal>textChanged(QString)</signal>
+   <sender>qBackBtn</sender>
+   <signal>clicked()</signal>
    <receiver>charNameBox</receiver>
    <slot>setFocus()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>651</x>
-     <y>164</y>
+     <x>293</x>
+     <y>90</y>
     </hint>
     <hint type="destinationlabel">
      <x>651</x>
