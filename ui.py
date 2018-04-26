@@ -4,7 +4,9 @@ from maya.app.general.mayaMixin import MayaQWidgetDockableMixin
 from vendor.Qt import QtWidgets, QtCompat, QtCore
 import AutoRig
 
-def setupUi(uifile, base_instance=None):
+def setupUi(base_instance=None):
+    cwd = os.path.dirname(__file__)
+    uifile = cwd + "/window.ui"
     ui = QtCompat.loadUi(uifile)
     if not base_instance:
         return ui
@@ -20,8 +22,7 @@ class MrWindow(MayaQWidgetDockableMixin, QtWidgets.QDialog):
         super(MrWindow, self).__init__()
         self.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
         self.setAttribute(QtCore.Qt.WA_DeleteOnClose, True)
-        mayaVersion = cmds.about(version = True)
-        self.base_instance = setupUi(os.path.expanduser("~/maya/%s/scripts/MagicRig/window.ui" % mayaVersion), self)
+        self.base_instance = setupUi(self)
         
         # connecting ui elements to functions
         ### start page ###
@@ -114,6 +115,14 @@ class MrWindow(MayaQWidgetDockableMixin, QtWidgets.QDialog):
 
     def skinMenu(self):
         cmds.SmoothBindSkinOptions()
+
+    
+    def customRigModule(self):
+        pass
+        '''
+        model = QStandardItemModel()
+        QStandardItem()
+        '''
 
 
 if cmds.window("mrWindowWorkspaceControl", exists=True):
