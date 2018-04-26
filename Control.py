@@ -1,9 +1,10 @@
 import os
 import maya.cmds as cmds
 import json
-from ui import window
 
-class Control:
+#from rignode import MetaNode
+
+class Control(object):
     ''' Creates new controller object
     Kwargs:
         name (string) name of new control
@@ -23,7 +24,6 @@ class Control:
     '''
     def __init__(self,
                  name = "new_Ctrl",
-                 #prefix = "",
                  shape = "circle",
                  scale = [1.0, 1.0, 1.0],
                  direction = "",
@@ -32,15 +32,15 @@ class Control:
                  moveTo = "",
                  parent = "",
                  lockChannels = ["s"],
-                 hideChannels = ["s", "v"]
+                 hideChannels = ["s", "v"],
+                 master = False
                  ):
-        prefix = cmds.getAttr("MR_Root.prefix") #window.charNameBox.text()
+        prefix = cmds.getAttr("MR_Root.prefix")
         # create shape
         if shape == "circle":
             ctrlObject = cmds.circle(name=prefix + "_" + name + "_ctrl", ch=False, normal=[0, 1, 0], radius=1)[0]
         else:
-            mayaVersion = cmds.about(version = True)
-            jsonFile = os.path.expanduser("~/maya/%s/scripts/MagicRig/ControlShapes.json" % mayaVersion)
+            jsonFile = os.path.dirname(__file__) + "/ControlShapes.json"
             shapes = json.load(open(jsonFile))
             ctrlObject = cmds.curve(p=shapes[shape], d=1, name=prefix + "_" + name + "_ctrl")
         ctrlOffset = cmds.group([ctrlObject], name=prefix + "_" + name + "_offset")
@@ -82,6 +82,11 @@ class Control:
                 cmds.move(moveTo[1] * masterScale, z=True)
             cmds.select(clear=True)
 
+        # parent master
+        if not master:
+            masterCtrl = cmds.listConnections("MR_Root.masterControl")[0]
+            cmds.parent(ctrlOffset, masterCtrl)
+
         # parent
         if parent and cmds.objExists(parent):
             cmds.parent(ctrlOffset, parent)
@@ -116,6 +121,14 @@ class Control:
         cmds.select(ctrlObject)
         cmds.TagAsController()
         cmds.select(clear=True)
+
+        # connect to parent node
+        cmds.addAttr(ctrlObject, ln="controlName", at="message")
+        cmds.connectAttr("MR_Root.controls", ctrlObject + ".controlName")
+        # connect message to offset
+        cmds.addAttr(ctrlObject, ln="controlOffset", at="message")
+        cmds.addAttr(ctrlOffset, ln="offsetControl", at="message")
+        cmds.connectAttr(ctrlObject + ".controlOffset", ctrlOffset + ".offsetControl")
 
         # set public names
         self.ctrlName = ctrlObject
