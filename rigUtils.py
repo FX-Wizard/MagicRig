@@ -134,7 +134,6 @@ def locator(name, pos=[0, 0, 0], snapTo=None):
     '''
     name = uniqueName(name)
     newLoc = cmds.spaceLocator(name=name)[0]
-    AutoRig.proxyList.append(newLoc)
     if snapTo and cmds.objExists(snapTo):
         cmds.delete(cmds.pointConstraint(snapTo, newLoc))
     cmds.move(pos[0], pos[1], pos[2], newLoc, relative=True)
@@ -146,6 +145,9 @@ def locator(name, pos=[0, 0, 0], snapTo=None):
         cmds.setAttr(newLoc + ".overrideColor", 13)
     else:
         cmds.setAttr(newLoc + ".overrideColor", 22)
+    # Add locator to root nodes proxy object list
+    cmds.addAttr(newLoc, ln="locatorName", at="message")
+    cmds.connectAttr("MR_Root.proxyObjects", newLoc + ".locatorName")
     # add to rig group
     try:
         cmds.parent(newLoc, cmds.getAttr("MR_Root.prefix") + "_Rig")
