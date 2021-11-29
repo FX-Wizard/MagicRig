@@ -1,11 +1,15 @@
 import maya.cmds as cmds
-
 from Control import Control
+print("HERE")
 from ui import window
+print("THERE")
 from . import rigparts
 from .rignode import MrNode
 
+rootNode = None
+
 def startup():
+    global rootNode
     # set root rig node
     if cmds.objExists("MR_Root"):
         prefix = cmds.getAttr("MR_Root.prefix")
@@ -66,14 +70,16 @@ def makeProxyQuad():
     cmds.move(0, 16, -8, root.rootJoint)
     # spine
     sJointNum = window.spineJointNumBox.value()
-    spine = rigparts.spine(sJointNum)
+    spine = rigparts.spine("spineRig", sJointNum)
     cmds.rotate(90, spine.mover, rotateX=True)
     cmds.move(0, 16, 0, spine.mover)
     # legs
-    legFrontL = rigparts.quadLeg("Front_L")
-    legFrontR = rigparts.quadLeg("Front_R")
-    legBackL = rigparts.quadLeg("Back_L")
-    legBackR = rigparts.quadLeg("Back_R")
+    legFrontL = rigparts.quadLeg("Front_L", "L")
+    cmds.move(2.4,14,5.662, legFrontL.mover)
+    legFrontR = rigparts.quadLeg("Front_R", "R")
+    cmds.move(-2.4,14,5.662, legFrontR.mover)
+    legBackL = rigparts.quadLeg("Back_L", "L")
+    legBackR = rigparts.quadLeg("Back_R", "R")
     # head
     head = rigparts.head("head")
     cmds.move(0, 17, 10, head.mover)
@@ -191,11 +197,12 @@ def scaleProxy():
 
 def resetProxy():
     '''delete proxy rig and create new proxy rig'''
-    cmds.delete("proxyRig")
-    cmds.setAttr("MR_Root.proxyObjects", " ", type="string")
-    if window.stackedWidget.getCurrentIndex() == 1:
+    cmds.delete(getPrefix() + "_Rig")
+    #cmds.setAttr("MR_Root.proxyObjects", " ")
+    print(window.stackedWidget.currentIndex())
+    if window.stackedWidget.currentIndex() == 2:
         makeProxyBiped()
-    elif window.stackedWidget.getCurrentIndex() == 2:
+    elif window.stackedWidget.getCurrentIndex() == 1:
         makeProxyQuad()
     else:
         makeProxyCustom()
@@ -208,7 +215,7 @@ def mirrorProxy(orient):
         source = "R"
     proxyList = cmds.listConnections("MR_Root.proxyObjects")
     for proxy in proxyList:
-        if orient in proxy[-3:]:
+        if orient in proxy[-2:]:
             pos = cmds.getAttr("%s.translate" % proxy[::-1].replace(orient, source, 1)[::-1])
             cmds.setAttr("%s.translate" % proxy, (pos[0][0] * -1), pos[0][1], pos[0][2], type="float3")
     cmds.select(clear=True)
@@ -234,7 +241,7 @@ def cleanup():
 
 
 # create callbacks
-cmds.scriptJob(e=("NewSceneOpened", lambda: startup()), parent="mrWindowWorkspaceControl")
+#cmds.scriptJob(e=("NewSceneOpened", lambda: startup()), parent="mrWindowWorkspaceControl")
 
 # run startup
 startup()

@@ -542,7 +542,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="mirroRightBtn">
+          <widget class="QPushButton" name="mirrorRightBtn">
            <property name="text">
             <string>Mirror -&gt;</string>
            </property>

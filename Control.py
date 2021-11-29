@@ -4,7 +4,7 @@ import json
 
 #from rignode import MetaNode
 
-class Control(object):
+class Control():
     ''' Creates new controller object
     Kwargs:
         name (string) name of new control

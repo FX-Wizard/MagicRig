@@ -2,6 +2,8 @@ import os
 import json
 import maya.cmds as cmds
 
+MAX_SIZE = 2147483647
+
 def proxyObj(proxyName, move=None, proxyBone=None, radius=0.5):
     # check name is unique
     newName = proxyName
@@ -13,10 +15,16 @@ def proxyObj(proxyName, move=None, proxyBone=None, radius=0.5):
     # Make Proxy Shape
     obj = cmds.sphere(name=name, r=radius, d=3, s=4, nsp=2, ch=False)[0]
     objShape = cmds.listRelatives(obj, shapes=True)[0]
-    try: # catch bug where initial shading group cannot be disconnected
-        cmds.disconnectAttr(objShape + ".instObjGroups[0]", "initialShadingGroup.dagSetMembers[0]")
-    except:
-        cmds.error("Failed to disconnect initialShadingGroup")
+     # catch bug where initial shading group cannot be disconnected
+    for pos in range(MAX_SIZE + 1):
+        try:
+            cmds.disconnectAttr(objShape + ".instObjGroups", f"initialShadingGroup.dagSetMembers[{pos}]")
+            break
+        except:
+            if pos == MAX_SIZE:
+                cmds.error("Failed to disconnect initialShadingGroup")
+            else:
+                pass
     # set colour
     cmds.setAttr(objShape + ".overrideEnabled", 1)
     if "L" in proxyName[-3:]:

@@ -25,8 +25,8 @@ global proc shelf_MagicRig () {
         -useAlpha 1
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
-        -image "/home/beast/maya/2018/prefs/icons/wizRigIcon.png" 
-        -image1 "/home/beast/maya/2018/prefs/icons/wizRigIcon.png" 
+        -image "wizRigIcon.png" 
+        -image1 "wizRigIcon.png" 
         -style "iconOnly" 
         -marginWidth 1
         -marginHeight 1
@@ -69,8 +69,8 @@ global proc shelf_MagicRig () {
         -useAlpha 1
         -overlayLabelColor 0.8 0.8 0.8 
         -overlayLabelBackColor 0 0 0 0.5 
-        -image "/home/beast/maya/2018/prefs/icons/demoIcon.png" 
-        -image1 "/home/beast/maya/2018/prefs/icons/demoIcon.png" 
+        -image "demoIcon.png" 
+        -image1 "demoIcon.png" 
         -style "iconOnly" 
         -marginWidth 1
         -marginHeight 1

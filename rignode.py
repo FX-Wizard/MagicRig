@@ -1,6 +1,6 @@
 import maya.cmds as cmds
 
-class MrNode(object):
+class MrNode():
     def __init__(self, name, version="0.1", parent="", child=""):
         name = cmds.createNode("network", name=name)
         # default attributes
@@ -56,12 +56,16 @@ class MetaNode(object):
     def __new__(cls, name, *args, **kwargs):
         #if not name:
         #    name = cls.__name__
+        #if type(name) == int:
+            #name = cls.__name__
+        #print(type(name))
         cls.node = cmds.createNode("network", name=name)
         cmds.addAttr(longName="parent", attributeType="message")
         cmds.addAttr(longName="child", attributeType="message")
         # set object type
         cmds.addAttr(longName="object", dataType="string")
-        cmds.setAttr(name + ".object", cls.__name__, type="string", lock=True)
+        #print(cmds.getAttr('rootRig.object'))
+        cmds.setAttr(name + ".object", cls.__name__, type="string", lock=False)
         
         return super(cls.__class__, cls).__new__(cls)
 
@@ -98,11 +102,16 @@ class MetaNode(object):
 
     def modAttr(self, name, value, lock=False):
         if type(value) == str:
-            cmds.setAttr(self.name + "." + name, value, type="string", lock=lock)
+            cmds.setAttr(self.name + "." + name, value, type="string", lock=False)
         else:
-            cmds.setAttr(self.name + "." + name, value, lock=lock)
+            cmds.setAttr(self.name + "." + name, value, lock=False)
         
 
     def setParent(self, parent):
-        cmds.connectAttr(parent + ".child", self.name + ".parent")
+        print(parent + ".child")
+        print(self.name + ".parent")
+        try:
+            cmds.connectAttr(parent + ".child", self.name + ".parent")
+        except:
+            pass
 

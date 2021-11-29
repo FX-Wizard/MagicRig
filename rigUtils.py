@@ -1,6 +1,6 @@
 import maya.cmds as cmds
 
-import AutoRig
+#import AutoRig
 import proxyObj
 from Control import Control
 
